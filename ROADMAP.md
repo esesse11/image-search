@@ -174,13 +174,16 @@ python -c "from app.common.config import load_config; c = load_config(); print(c
 
 # 4. .env 파일 확인
 cat .env  # OPENAI_API_KEY 설정 확인
+
+# 5. 모델 검증
+python -c "from app.common.models import ImageAttributes; a = ImageAttributes(color=['blue']); print(a)"
 ```
 
 **산출물:**
 - ✅ FastAPI 기본 구조 완성
-- ✅ SQLite DB 초기화
+- ✅ SQLite DB 초기화 + 7개 속성 모델
 - ✅ 설정 시스템 통합
-- ✅ Git 첫 커밋 & 푸시
+- ✅ Git 커밋 & 푸시
 
 ---
 
@@ -497,24 +500,69 @@ if query:
 streamlit run app/ui/app.py
 ```
 
-### 🧑‍🏫 Day 13: Fine-tuning Setup (Optional)
+### 🧑‍🏫 Day 13: Fine-tuning Setup ⭐ (필수 - 선택됨)
 
-**목적:** 사내 표준 캡션 포맷에 맞추기
+**목적:**
+- 사내 표준 캡션 포맷 학습 (SFT)
+- 검색 재정렬 선호도 학습 (DPO)
 
 **파일:**
-- `training/make_jsonl.py` - JSONL 생성
-- `training/finetune.py` - 파인튜닝 실행
+```
+training/
+├── make_jsonl.py      # DB/피드백 → JSONL 변환
+├── finetune.py        # OpenAI Fine-tuning API 실행
+├── evaluate.py        # 파인튜닝 모델 평가
+├── sft_data.jsonl     # SFT 학습 데이터
+└── dpo_data.jsonl     # DPO 학습 데이터
+```
 
+**SFT (Supervised Fine-Tuning):**
 ```python
-# training/make_jsonl.py
-# DB → JSONL 변환
-# 예:
-# {"messages": [
-#   {"role": "user", "content": "원본 캡션"},
-#   {"role": "assistant", "content": "표준 캡션"}
-# ]}
+# training/make_jsonl.py - SFT 데이터 생성
+from app.common.database import SessionLocal
+from app.common.models import Image
 
-# 비용: ~$3-5 (작은 모델)
+db = SessionLocal()
+sft_data = []
+
+for image in db.query(Image).all():
+    sft_data.append({
+        "messages": [
+            {"role": "user", "content": image.caption},
+            {"role": "assistant", "content": f"Color: {image.attributes['color']} | Material: {image.attributes['material']} | Style: {image.attributes['style']}"}
+        ]
+    })
+
+# 500+ 샘플 생성 및 sft_data.jsonl로 저장
+```
+
+**DPO (Direct Preference Optimization):**
+```python
+# 검색 피드백으로 선호도 데이터 생성
+# feedback 테이블에서 relevance=1 (좋음) vs relevance=0 (나쁨)
+# → dpo_data.jsonl 생성
+```
+
+**파인튜닝 실행:**
+```bash
+python training/finetune.py \
+  --model gpt-3.5-turbo \
+  --training-file sft_data.jsonl \
+  --validation-file dpo_data.jsonl \
+  --epochs 3
+
+# 비용: ~$10-20 (SFT + DPO)
+```
+
+**체크리스트:**
+```
+- [ ] training/make_jsonl.py 작성
+- [ ] training/finetune.py 작성
+- [ ] training/evaluate.py 작성
+- [ ] SFT 데이터 생성 (500+ 샘플)
+- [ ] DPO 데이터 생성 (100+ 쌍)
+- [ ] 파인튜닝 실행
+- [ ] 성능 비교 (기본 vs 파인튜닝)
 ```
 
 ### ✅ Day 14: Local Testing
