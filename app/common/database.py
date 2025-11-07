@@ -60,7 +60,7 @@ class Feedback(Base):
 def init_db():
     """테이블 생성"""
     Base.metadata.create_all(bind=engine)
-    print("✓ Database tables created")
+    print("[OK] Database tables created")
 
 
 # Dependency for FastAPI

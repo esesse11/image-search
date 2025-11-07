@@ -56,5 +56,5 @@ def get_config() -> Dict[str, Any]:
 try:
     Config.load()
 except FileNotFoundError:
-    print("⚠️ config.yaml not found. Using defaults.")
+    print("[WARN] config.yaml not found. Using defaults.")
     Config._config = {}

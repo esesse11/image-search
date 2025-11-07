@@ -34,13 +34,13 @@ app.add_middleware(
 async def startup_event():
     """앱 시작 시 DB 초기화"""
     init_db()
-    print("✓ Application started")
+    print("[OK] Application started")
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """앱 종료 시"""
-    print("✓ Application shutdown")
+    print("[OK] Application shutdown")
 
 
 # 기본 엔드포인트
