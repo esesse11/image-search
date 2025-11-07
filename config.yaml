@@ -1,0 +1,103 @@
+# Image Search System - Configuration
+# Load via: yaml.safe_load(open('config.yaml'))
+
+# API & Server
+api:
+  host: "0.0.0.0"
+  port: 8000
+  reload: true
+  workers: 2
+
+# UI (Streamlit)
+ui:
+  host: "0.0.0.0"
+  port: 8501
+  theme: "light"
+  wide_layout: true
+
+# Database
+database:
+  type: "sqlite"  # sqlite / postgresql
+  path: "./app/data/images.db"
+  echo: false  # SQL 로깅 활성화
+
+# Vector Index
+index:
+  type: "faiss"  # faiss / qdrant
+  faiss:
+    path: "./app/data/index.faiss"
+    metric: "ip"  # ip / l2
+  qdrant:
+    url: "http://localhost:6333"
+    collection: "images"
+    vector_size: 1536  # text-embedding-3-small
+
+# Embeddings
+embedding:
+  provider: "openai"  # openai / local
+  model: "text-embedding-3-small"
+  batch_size: 100
+  cache: true
+  cache_path: "./app/data/embeddings_cache"
+
+# Image Processing
+images:
+  input_dir: "./app/data/raw_images"
+  processed_dir: "./app/data/processed_images"
+  thumbnail_dir: "./app/data/thumbnails"
+  max_size: [512, 512]
+  thumbnail_size: [256, 256]
+  quality: 85
+  formats: ["jpg", "jpeg", "png", "webp"]
+
+# Captioning
+captioning:
+  provider: "openai"  # openai / local_blip / local_llava
+  model: "gpt-4-vision"
+  max_tokens: 100
+  temperature: 0.7
+  batch_size: 10
+  cache: true
+  cache_path: "./app/data/captions_cache"
+
+# Attributes
+attributes:
+  extract: true
+  categories:
+    - "color"
+    - "material"
+    - "style"
+    - "season"
+    - "brand"
+    - "rights_status"
+  cache_path: "./app/data/attributes_cache"
+
+# Search
+search:
+  top_k: 20
+  min_score: 0.3
+  weights:
+    caption: 0.6
+    attributes: 0.3
+    text_query: 0.1
+
+# Fine-tuning (Optional)
+finetuning:
+  enabled: false
+  provider: "openai"  # openai
+  model_base: "gpt-3.5-turbo"
+  epochs: 3
+  learning_rate: 0.0001
+  jsonl_path: "./training/train.jsonl"
+
+# Logging
+logging:
+  level: "INFO"  # DEBUG / INFO / WARNING / ERROR
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "./logs/app.log"
+
+# Development
+dev:
+  sample_images: 10  # 초기 테스트용 샘플 이미지 수
+  mock_embeddings: false  # 개발 시 API 호출 스킵
+  debug: false
